@@ -17,9 +17,7 @@ public class DBPKlausurHelper {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
-
 
     private String url = "jdbc:sqlite:C:\\Users\\aurel\\OneDrive - FH JOANNEUM\\Dokumente\\JAVA\\DBPKlausur_ZOUAOUI.db";
 
@@ -170,7 +168,7 @@ public class DBPKlausurHelper {
 
 
     //Aufgabe 4b
-    public List<KlausurProjekte> getAlleProjekteSortedByProjekttypFilteredByMaxLaufzeit(int laufzeit) {
+    public ArrayList<KlausurProjekte> getAlleProjekteSortedByProjekttypFilteredByMaxLaufzeit(int laufzeit) {
 
         ArrayList<KlausurProjekte> alleProjekte = new ArrayList<KlausurProjekte>();
         try {
@@ -180,23 +178,50 @@ public class DBPKlausurHelper {
             pSuche.setDouble(1, laufzeit);
             ResultSet rs = pSuche.executeQuery();
             while (rs.next()) {
+
                 KlausurProjekte k = new KlausurProjekte();
                 k.setProjektId(rs.getInt("ProjektID"));
                 k.setLaufzeit(rs.getInt("laufzeit"));
                 alleProjekte.add(k);
                 alleProjekte.add(getProjektById(rs.getInt("ProjektID")));
             }
+                for (KlausurProjekte projekte:alleProjekte){
+                    System.out.println(projekte);
+            }
         } catch (SQLException ex) {
-            System.out.println(ex.getStackTrace());
+            System.out.printf("%s", ex.getStackTrace());
         }
         return alleProjekte;
     }
 
 
     //Aufgabe 5a
-    // public KlausurProjektaufgaben insertProjektaufgabe(KlausurProjektaufgaben aufgabe){
+    public KlausurProjektaufgaben insertProjektaufgabe(KlausurProjektaufgaben aufgabe) {
+        try {
+        String updateAufgabe = "INSERT INTO KlausurProjektaufgaben (\n + " +
+                "ProjektID,\n" +
+                "Aufgabenbezeichnung,\n" +
+                "AufwandInStunden) \n+" +
+                "VALUES (?, ?, ?)\";";
 
-    // }
+            PreparedStatement pStmt = conn.prepareStatement(updateAufgabe);
+            pStmt.setInt(1, aufgabe.getProjektId());
+            pStmt.setString(2, aufgabe.getAufgabenbezeichnung());
+            pStmt.setInt(3, aufgabe.getAufwandInStunden());
+
+            int affectedRows = pStmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Projektaufgabe konnte nicht erstellt werden");
+            } else {
+                System.out.println("Aufgabe: " + aufgabe + " wurde eingefügt");
+            }
+        } catch (SQLException ex) {
+
+            ex.printStackTrace();
+        }
+        return aufgabe;
+    }
+
 
     //Aufgabe 6a
     public KlausurProjekte getProjektMitDenMeistenAufgaben() {
@@ -254,38 +279,50 @@ public class DBPKlausurHelper {
 
     //Aufgabe 8
     public void createAdditionalTableAndFillWithSampleValues() {
+
+       /* System.out.println(url);
         try (Connection conn = DriverManager.getConnection(url)) {
 
-            String ddlCreateProjekte =  "CREATE TABLE Aufgaben (\n" +
-                    "AufgabeID INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
+            String ddlCreateProjekte = "CREATE TABLE Aufgaben (AufgabeID INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
                     "ProjektaufgabeId INT,\n" +
                     "Punkte INT,\n" +
                     "Kommentar VARCHAR (20),\n" +
-                    "CONSTRAINT fk_projektaufgaben FOREIGN KEY (\n" +
-                    "ProjektaufgabeId\n" +
-                    ")\n" +
+                    "CONSTRAINT fk_projektaufgaben FOREIGN KEY (ProjektaufgabeId)\n" +
                     "REFERENCES KlausurProjektaufgaben (ProjektaufgabeID) \n" +
                     ");";
 
             Statement ddlCreateProjekteStmt = conn.createStatement();
             ddlCreateProjekteStmt.execute(ddlCreateProjekte);
             System.out.println("Table Aufgaben succesfully created");
+
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+        }*/
+        try {
+            String extraAufgabe = "INSERT INTO Aufgaben (\n" +
+                    "                        ProjektaufgabeId,\n" +
+                    "                        Punkte,\n" +
+                    "                        Kommentar)\n" +
+                    "                        VALUES(1,10,'organisatorisch schwer handelbar' \n" +
+                    "                        );";
+            PreparedStatement pStmt = conn.prepareStatement(extraAufgabe);
+            pStmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    public void transferBudget(int oldProjektId, int newProjektId, double budget){
+    public void transferBudget(int oldProjektId, int newProjektId, double budget) {
 
         String update1 = "UPDATE KlausurProjekte set Budget = Budget - ? WHERE Projektid = ?";
         String update2 = "UPDATE KlausurProjekte set Budget = Budget + ? WHERE Projektid = ?";
 
-        try{
+        try {
             conn.setAutoCommit(false);
             PreparedStatement pStmt1 = conn.prepareStatement(update1);
 
-            pStmt1.setInt(1,oldProjektId);
-            pStmt1.setInt(2,newProjektId);
+            pStmt1.setInt(1, oldProjektId);
+            pStmt1.setInt(2, newProjektId);
             pStmt1.setDouble(3, budget);
 
             PreparedStatement pStmt2 = conn.prepareStatement(update2);
@@ -295,11 +332,10 @@ public class DBPKlausurHelper {
             pStmt2.executeUpdate();
             conn.commit();
 
-        }catch (SQLException ex){
+        } catch (SQLException ex) {
             try {
                 conn.rollback();
-            }
-            catch (SQLException transactionFehler){
+            } catch (SQLException transactionFehler) {
                 System.out.printf("%s", ex.getStackTrace());
             }
 

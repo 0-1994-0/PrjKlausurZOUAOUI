@@ -8,7 +8,11 @@ public class KlausurProjektaufgaben {
     private String Aufgabenbezeichnung;
     private int AufwandInStunden;
 
-
+    public KlausurProjektaufgaben(int projektId, String aufgabenbezeichnung, int aufwandInStunden) {
+        ProjektId = projektId;
+        Aufgabenbezeichnung = aufgabenbezeichnung;
+        AufwandInStunden = aufwandInStunden;
+    }
 
     public int getProjektaufgabeID() {
         return ProjektaufgabeID;
